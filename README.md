@@ -27,3 +27,9 @@ npm test
 ```
 
 Extrativismo inclui produtos retirados da natureza: castanhas e açaí silvestres, peixe de pesca, látex de seringueira nativa e caranguejo do mangue. As descrições distinguem coleta silvestre de cultivo ou criação.
+
+## Publicar na Vercel
+
+Importe `MullerEsposito/dropmind` na Vercel e selecione a branch `main`. O arquivo `vercel.json` configura a geração do site com `npm run build` e a publicação de `dist/`. Não são necessárias variáveis de ambiente nem um servidor Node em produção. Após conectar o repositório, novos pushes na branch de produção geram novas publicações.
+
+Para validar a geração localmente, execute `npm run build`. O ranking continua sendo local a cada navegador e domínio; pontuações de localhost não são transferidas para o domínio publicado.
