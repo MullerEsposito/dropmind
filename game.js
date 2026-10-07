@@ -1,5 +1,48 @@
 import { products, origins, levelFor, durationFor } from './products.js';
+import { createAudio } from './audio.js';
 const $ = id => document.getElementById(id);
+const audio = createAudio();
+let muted = false, ranking = [], submitted = false;
+try {
+  muted = localStorage.getItem('dropmind-muted') === 'true';
+  const saved = JSON.parse(localStorage.getItem('dropmind-ranking') || '[]');
+  if (Array.isArray(saved)) ranking = saved.filter(entry => typeof entry.name === 'string' && Number.isFinite(entry.score) && entry.score >= 0).sort((a, b) => b.score - a.score).slice(0, 10);
+} catch {}
+function soundButton() {
+  audio.mute(muted); $('sound').textContent = muted ? 'Som: desligado' : 'Som: ligado';
+  $('sound').setAttribute('aria-pressed', String(!muted));
+}
+soundButton();
+$('sound').addEventListener('click', () => {
+  muted = !muted; soundButton();
+  try { localStorage.setItem('dropmind-muted', String(muted)); } catch {}
+});
+function showRanking() {
+  if (state === 'playing') pause();
+  $('ranking-form').hidden = state !== 'over' || submitted;
+  $('ranking-status').textContent = '';
+  renderRanking(); $('ranking-dialog').showModal();
+}
+function renderRanking() {
+  $('ranking-list').replaceChildren();
+  for (const entry of ranking) {
+    const row = document.createElement('li'), name = document.createElement('span'), score = document.createElement('strong');
+    name.textContent = entry.name; score.textContent = `${entry.score} pontos`;
+    row.append(name, score); $('ranking-list').append(row);
+  }
+  $('ranking-empty').hidden = ranking.length > 0;
+}
+$('ranking-button').addEventListener('click', showRanking);
+$('ranking-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (state !== 'over' || submitted) return;
+  const name = $('player-name').value.trim().slice(0, 24);
+  if (!name) { $('ranking-status').textContent = 'Digite seu nome para salvar.'; $('player-name').focus(); return; }
+  ranking = [...ranking, { name, score: hits * 10 }].sort((a, b) => b.score - a.score).slice(0, 10);
+  submitted = true; $('ranking-form').hidden = true; renderRanking();
+  try { localStorage.setItem('dropmind-ranking', JSON.stringify(ranking)); $('ranking-status').textContent = 'Pontuação registrada! O ranking guarda as 10 maiores pontuações.'; }
+  catch { $('ranking-status').textContent = 'Pontuação registrada nesta sessão. O navegador não permitiu salvar permanentemente.'; }
+});
 let best = 0;
 try { best = Number(localStorage.getItem('dropmind-best')) || 0; } catch {}
 let state = 'idle', hits = 0, lives = 3, elapsed = 0, last = 0, current, previous = -1;
@@ -22,22 +65,26 @@ function render() {
   $('product').style.transform = `translate(-50%, ${Math.min(1, elapsed / durationFor(levelFor(hits))) * distance}px)`;
 }
 function start() {
+  submitted = false; audio.start();
   hits = 0; lives = 3; state = 'playing'; last = performance.now();
   $('overlay').hidden = true; $('pause').disabled = false; $('pause').textContent = 'Pausar';
   $('feedback').textContent = 'Escolha a origem do produto antes que ele chegue ao solo.';
   stats(); next();
 }
 function finish() {
+  audio.stop();
   state = 'over'; $('product').hidden = true; $('pause').disabled = true;
   best = Math.max(best, hits * 10);
   try { localStorage.setItem('dropmind-best', String(best)); } catch {}
   $('title').textContent = 'Uma nova colheita te espera!';
   $('description').textContent = `${hits * 10} pontos · ${hits} acertos · nível ${levelFor(hits)}. Tente superar seu recorde!`;
   $('start').textContent = 'Jogar novamente →'; $('overlay').hidden = false; stats();
+  showRanking();
 }
 function answer(origin) {
   if (state !== 'playing') return;
   const name = current.name;
+  audio.effect(origin === current.origin);
   if (origin === current.origin) {
     hits++;
     $('feedback').textContent = `✓ ${name}: ${origins[origin]}!${hits % 5 === 0 ? ` Nível ${levelFor(hits)} — a queda acelerou!` : ' +10 pontos'}`;
@@ -49,10 +96,12 @@ function answer(origin) {
 }
 function pause() {
   if (state === 'playing') {
+    audio.stop();
     state = 'paused'; $('overlay').hidden = false;
     $('title').textContent = 'Uma pausa na colheita'; $('description').textContent = 'Respire. Seu progresso está guardado nesta partida.';
     $('start').textContent = 'Continuar →'; $('pause').textContent = 'Continuar';
   } else if (state === 'paused') {
+    audio.start();
     state = 'playing'; last = performance.now(); $('overlay').hidden = true; $('pause').textContent = 'Pausar';
   }
 }
@@ -78,7 +127,7 @@ $('fullscreen').addEventListener('click', async () => {
 document.addEventListener('fullscreenchange', syncFullscreen);
 document.querySelectorAll('[data-origin]').forEach(button => button.addEventListener('click', () => answer(Number(button.dataset.origin))));
 document.addEventListener('keydown', event => {
-  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help').open) return;
+  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help').open || $('ranking-dialog').open || event.target.closest('input, textarea, [contenteditable]')) return;
   const origin = ['a', 'p', 'i'].indexOf(event.key.toLowerCase());
   if (origin !== -1) { event.preventDefault(); answer(origin); }
   if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); pause(); }

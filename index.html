@@ -3,7 +3,7 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dropmind · Da terra à origem</title><link rel="stylesheet" href="/style.css"></head>
 <body>
 <main>
-  <header><a class="brand" href="/">🌱 dropmind<span>DA TERRA À ORIGEM</span></a><div class="header-actions"><button id="fullscreen" class="quiet" type="button" aria-pressed="false">Tela cheia</button><button id="soundless" class="quiet" type="button">Como jogar</button></div></header>
+  <header><a class="brand" href="/">🌱 dropmind<span>DA TERRA À ORIGEM</span></a><div class="header-actions"><button id="sound" class="quiet" type="button" aria-pressed="true">Som: ligado</button><button id="ranking-button" class="quiet" type="button">Ranking</button><button id="fullscreen" class="quiet" type="button" aria-pressed="false">Tela cheia</button><button id="soundless" class="quiet" type="button">Como jogar</button></div></header>
   <section class="intro"><span class="eyebrow">COLHA CONHECIMENTO</span><h1>Cada produto tem<br>uma <em>história.</em></h1><p>Descubra de onde vem. Acerte a origem antes que o produto toque o solo!</p></section>
   <section class="game" aria-label="Jogo de classificação de produtos">
     <div class="stats"><div>PONTOS<strong id="score">0</strong></div><div>NÍVEL<strong id="level">01</strong></div><div>VIDAS<strong id="lives" aria-label="3 vidas">♥ ♥ ♥</strong></div><button id="pause" class="quiet" disabled>Pausar</button></div>
@@ -16,5 +16,6 @@
   <footer><span>APRENDA BRINCANDO. CRESÇA A CADA ACERTO.</span><span>Feito para mentes curiosas ✦</span></footer>
 </main>
 <dialog id="help"><h2>Da terra à origem</h2><p>Aperte a tecla ou toque no botão correspondente ao produto que está caindo.</p><p><b>A — Agricultura:</b> vegetais, frutas e grãos.<br><b>P — Agropecuária:</b> produtos de origem animal.<br><b>I — Agroindústria:</b> produtos transformados, como pão e queijo.</p><p>Neste jogo, “agropecuária” identifica a produção animal, embora o termo também englobe a agricultura. Uma resposta errada ou um produto no solo custa uma vida. Cada acerto vale 10 pontos; a cada 5 acertos, a queda acelera.</p><p>Espaço pausa ou continua. Ao trocar de aba, o jogo pausa automaticamente.</p><form method="dialog"><button class="primary">Entendi!</button></form></dialog>
+<dialog id="ranking-dialog" aria-labelledby="ranking-title"><h2 id="ranking-title">🏆 Ranking da colheita</h2><p>As 10 maiores pontuações neste navegador.</p><form id="ranking-form"><label for="player-name">Seu nome</label><div class="ranking-entry"><input id="player-name" name="name" maxlength="24" required placeholder="Como você se chama?" autocomplete="nickname"><button class="primary" type="submit">Salvar pontuação</button></div></form><p id="ranking-status" role="status"></p><p id="ranking-empty">Ainda não há pontuações. Seja o primeiro!</p><ol id="ranking-list"></ol><form method="dialog"><button class="quiet">Fechar</button></form></dialog>
 <script type="module" src="/game.js"></script>
 </body></html>

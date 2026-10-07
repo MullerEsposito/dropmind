@@ -6,6 +6,12 @@ Cada acerto vale 10 pontos. A cada 5 acertos, o nível e a velocidade aumentam. 
 
 Use **Tela cheia** no cabeçalho para expandir o jogo. O botão passa a **Sair da tela cheia**; também é possível sair com Esc. A opção depende do suporte do navegador.
 
+## Som e ranking
+
+A música de fundo original e os efeitos de acerto e erro são sintetizados com Web Audio, sem downloads de áudio. A música começa ao jogar e pausa junto com a partida. O botão **Som** silencia música e efeitos e salva sua preferência.
+
+Ao terminar, informe seu nome para registrar a pontuação. O botão **Ranking** exibe as 10 maiores pontuações, em ordem decrescente. Cada partida pode ser registrada uma única vez; empates mantêm a ordem de registro. O ranking é local, salvo no navegador, e não é compartilhado entre dispositivos. Se o armazenamento estiver bloqueado, os resultados ficam disponíveis apenas na sessão atual.
+
 ## Desenvolvimento
 
 Requer Node.js 22 ou superior. Sem dependências de instalação.
