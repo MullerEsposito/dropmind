@@ -2,11 +2,9 @@ import { products, origins, levelFor, durationFor } from './products.js';
 import { createAudio } from './audio.js';
 const $ = id => document.getElementById(id);
 const audio = createAudio();
-let muted = false, ranking = [], submitted = false;
+let muted = false, ranking = [], submitted = false, saving = false, roundId;
 try {
   muted = localStorage.getItem('dropmind-muted') === 'true';
-  const saved = JSON.parse(localStorage.getItem('dropmind-ranking') || '[]');
-  if (Array.isArray(saved)) ranking = saved.filter(entry => typeof entry.name === 'string' && Number.isFinite(entry.score) && entry.score >= 0).sort((a, b) => b.score - a.score).slice(0, 10);
 } catch {}
 function soundButton() {
   audio.mute(muted); $('sound').textContent = muted ? 'Som: desligado' : 'Som: ligado';
@@ -21,7 +19,8 @@ function showRanking() {
   if (state === 'playing') pause();
   $('ranking-form').hidden = state !== 'over' || submitted;
   $('ranking-status').textContent = '';
-  renderRanking(); $('ranking-dialog').showModal();
+  ranking = []; renderRanking(); $('ranking-empty').hidden = true;
+  $('ranking-dialog').showModal(); loadRanking();
 }
 function renderRanking() {
   $('ranking-list').replaceChildren();
@@ -33,15 +32,30 @@ function renderRanking() {
   $('ranking-empty').hidden = ranking.length > 0;
 }
 $('ranking-button').addEventListener('click', showRanking);
-$('ranking-form').addEventListener('submit', event => {
+async function rankingRequest(options) {
+  const response = await fetch('/api/ranking', { ...options, signal: AbortSignal.timeout(10000) });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Ranking indisponível.');
+  return data.ranking;
+}
+async function loadRanking() {
+  $('ranking-status').textContent = 'Carregando ranking global…';
+  try { const result = await rankingRequest(); if (!saving && !submitted) { ranking = result; renderRanking(); $('ranking-status').textContent = ''; } }
+  catch (error) { if (!saving && !submitted) $('ranking-status').textContent = error.message; }
+}
+$('ranking-form').addEventListener('submit', async event => {
   event.preventDefault();
-  if (state !== 'over' || submitted) return;
+  if (state !== 'over' || submitted || saving) return;
   const name = $('player-name').value.trim().slice(0, 24);
   if (!name) { $('ranking-status').textContent = 'Digite seu nome para salvar.'; $('player-name').focus(); return; }
-  ranking = [...ranking, { name, score: hits * 10 }].sort((a, b) => b.score - a.score).slice(0, 10);
-  submitted = true; $('ranking-form').hidden = true; renderRanking();
-  try { localStorage.setItem('dropmind-ranking', JSON.stringify(ranking)); $('ranking-status').textContent = 'Pontuação registrada! O ranking guarda as 10 maiores pontuações.'; }
-  catch { $('ranking-status').textContent = 'Pontuação registrada nesta sessão. O navegador não permitiu salvar permanentemente.'; }
+  saving = true; const button = $('ranking-form').querySelector('button'); button.disabled = true;
+  $('ranking-status').textContent = 'Salvando pontuação…';
+  try {
+    ranking = await rankingRequest({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, score: hits * 10, id: roundId }) });
+    submitted = true; $('ranking-form').hidden = true; renderRanking();
+    $('ranking-status').textContent = 'Pontuação registrada no ranking global!';
+  } catch (error) { $('ranking-status').textContent = `${error.message} Sua pontuação não foi enviada. Tente salvar novamente.`; }
+  finally { saving = false; button.disabled = false; }
 });
 let best = 0;
 try { best = Number(localStorage.getItem('dropmind-best')) || 0; } catch {}
@@ -67,7 +81,7 @@ function render() {
   $('product').style.transform = `translate(-50%, ${Math.min(1, elapsed / durationFor(levelFor(hits))) * distance}px)`;
 }
 function start() {
-  submitted = false; audio.start();
+  submitted = false; roundId = crypto.randomUUID(); audio.start();
   hits = 0; lives = 3; state = 'playing'; last = performance.now();
   $('overlay').hidden = true; $('pause').disabled = false; $('pause').textContent = 'Pausar';
   $('feedback').textContent = 'Escolha a origem do produto antes que ele chegue ao solo.';
