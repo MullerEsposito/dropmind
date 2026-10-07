@@ -45,7 +45,9 @@ $('ranking-form').addEventListener('submit', event => {
 });
 let best = 0;
 try { best = Number(localStorage.getItem('dropmind-best')) || 0; } catch {}
-let state = 'idle', hits = 0, lives = 3, elapsed = 0, last = 0, current, previous = -1;
+let lastScore = 0;
+try { const saved = Number(localStorage.getItem('dropmind-last-score')); if (Number.isFinite(saved) && saved >= 0 && saved % 10 === 0) lastScore = saved; } catch {}
+let state = 'idle', hits = lastScore / 10, lives = 3, elapsed = 0, last = 0, current, previous = -1;
 function stats() {
   $('score').textContent = hits * 10;
   $('level').textContent = String(levelFor(hits)).padStart(2, '0');
@@ -75,7 +77,7 @@ function finish() {
   audio.stop();
   state = 'over'; $('product').hidden = true; $('pause').disabled = true;
   best = Math.max(best, hits * 10);
-  try { localStorage.setItem('dropmind-best', String(best)); } catch {}
+  try { localStorage.setItem('dropmind-best', String(best)); localStorage.setItem('dropmind-last-score', String(hits * 10)); } catch {}
   $('title').textContent = 'Uma nova colheita te espera!';
   $('description').textContent = `${hits * 10} pontos · ${hits} acertos · nível ${levelFor(hits)}. Tente superar seu recorde!`;
   $('start').textContent = 'Jogar novamente →'; $('overlay').hidden = false; stats();
@@ -108,27 +110,41 @@ function pause() {
 $('start').addEventListener('click', () => state === 'paused' ? pause() : start());
 $('pause').addEventListener('click', pause);
 function syncFullscreen() {
-  const active = Boolean(document.fullscreenElement);
-  $('fullscreen').textContent = active ? 'Sair da tela cheia' : 'Tela cheia';
+  const active = $('game').classList.contains('expanded') || document.fullscreenElement === $('game');
+  document.body.classList.toggle('game-expanded', active);
+  const label = active ? 'Sair da tela cheia' : 'Entrar em tela cheia';
+  $('fullscreen').setAttribute('aria-label', label);
+  $('fullscreen').title = label;
+  $('fullscreen-icon').setAttribute('d', active ? 'M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5' : 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5');
   $('fullscreen').setAttribute('aria-pressed', String(active));
+  if (current) render();
 }
-if (!document.fullscreenEnabled) {
-  $('fullscreen').disabled = true;
-  $('fullscreen').title = 'Tela cheia não está disponível neste navegador.';
-}
-$('fullscreen').addEventListener('click', async () => {
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
-  } catch {
-    $('feedback').textContent = 'Não foi possível ativar a tela cheia neste navegador. Você pode continuar jogando normalmente.';
+async function toggleFullscreen() {
+  if ($('game').classList.contains('expanded') || document.fullscreenElement === $('game')) {
+    if (document.fullscreenElement === $('game')) await document.exitFullscreen();
+    $('game').classList.remove('expanded');
+  } else {
+    $('game').classList.add('expanded');
+    // A expansão por CSS também funciona em celulares sem Fullscreen API.
+    if (document.fullscreenEnabled && $('game').requestFullscreen) {
+      try { await $('game').requestFullscreen(); } catch { /* Mantém o modo expandido. */ }
+    }
   }
+  syncFullscreen();
+}
+$('fullscreen').addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) $('game').classList.remove('expanded');
+  syncFullscreen();
 });
-document.addEventListener('fullscreenchange', syncFullscreen);
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !document.fullscreenElement && !$('ranking-dialog').open && $('game').classList.contains('expanded')) toggleFullscreen();
+});
+window.addEventListener('resize', () => { if (current) render(); });
 document.querySelectorAll('[data-origin]').forEach(button => button.addEventListener('click', () => answer(Number(button.dataset.origin))));
 document.addEventListener('keydown', event => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help').open || $('ranking-dialog').open || event.target.closest('input, textarea, [contenteditable]')) return;
-  const origin = ['a', 'p', 'i'].indexOf(event.key.toLowerCase());
+  const origin = ['a', 'p', 'i', 'e'].indexOf(event.key.toLowerCase());
   if (origin !== -1) { event.preventDefault(); answer(origin); }
   if (event.code === 'Space' && event.target.tagName !== 'BUTTON') { event.preventDefault(); pause(); }
 });
