@@ -4,6 +4,8 @@ Jogo educativo em JavaScript para navegador. Classifique os produtos antes de ch
 
 Cada acerto vale 10 pontos. A cada 5 acertos, o nível e a velocidade aumentam. Erros ou produtos no solo consomem uma das 3 vidas. Espaço pausa; o recorde fica salvo no navegador.
 
+Use **Tela cheia** no cabeçalho para expandir o jogo. O botão passa a **Sair da tela cheia**; também é possível sair com Esc. A opção depende do suporte do navegador.
+
 ## Desenvolvimento
 
 Requer Node.js 22 ou superior. Sem dependências de instalação.

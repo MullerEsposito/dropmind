@@ -58,6 +58,24 @@ function pause() {
 }
 $('start').addEventListener('click', () => state === 'paused' ? pause() : start());
 $('pause').addEventListener('click', pause);
+function syncFullscreen() {
+  const active = Boolean(document.fullscreenElement);
+  $('fullscreen').textContent = active ? 'Sair da tela cheia' : 'Tela cheia';
+  $('fullscreen').setAttribute('aria-pressed', String(active));
+}
+if (!document.fullscreenEnabled) {
+  $('fullscreen').disabled = true;
+  $('fullscreen').title = 'Tela cheia não está disponível neste navegador.';
+}
+$('fullscreen').addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    $('feedback').textContent = 'Não foi possível ativar a tela cheia neste navegador. Você pode continuar jogando normalmente.';
+  }
+});
+document.addEventListener('fullscreenchange', syncFullscreen);
 document.querySelectorAll('[data-origin]').forEach(button => button.addEventListener('click', () => answer(Number(button.dataset.origin))));
 document.addEventListener('keydown', event => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help').open) return;
