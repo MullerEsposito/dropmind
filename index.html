@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dropmind · Da terra à origem</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<main>
+  <header><a class="brand" href="/">🌱 dropmind<span>DA TERRA À ORIGEM</span></a><button id="soundless" class="quiet" type="button">Como jogar</button></header>
+  <section class="intro"><span class="eyebrow">COLHA CONHECIMENTO</span><h1>Cada produto tem<br>uma <em>história.</em></h1><p>Descubra de onde vem. Acerte a origem antes que o produto toque o solo!</p></section>
+  <section class="game" aria-label="Jogo de classificação de produtos">
+    <div class="stats"><div>PONTOS<strong id="score">0</strong></div><div>NÍVEL<strong id="level">01</strong></div><div>VIDAS<strong id="lives" aria-label="3 vidas">♥ ♥ ♥</strong></div><button id="pause" class="quiet" disabled>Pausar</button></div>
+    <div id="field"><div class="sun"></div><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div><span class="field-label">UM DESAFIO, MUITAS ORIGENS</span><div id="product" hidden><span id="icon"></span><strong id="name"></strong></div><div class="hills"></div><div class="ground"><span>🌱</span><span>🌿</span><span>🌱</span><span>🌿</span><span>🌱</span></div>
+      <div id="overlay"><span class="overlay-icon">🌾</span><h2 id="title">Pronto para a colheita?</h2><p id="description">Use A, P ou I para escolher a origem.<br>Você tem 3 vidas. Vamos começar?</p><button id="start" class="primary">Começar a jogar <span>→</span></button><small id="best">RECORDE: 0 PONTOS</small></div>
+    </div>
+    <p id="feedback" role="status" aria-live="polite">A cada 5 acertos, um novo nível. Fique de olho na velocidade!</p>
+    <div class="controls"><button data-origin="0"><kbd>A</kbd><span><strong>Agricultura</strong><small>Produtos vegetais</small></span><span class="category-icon">🌽</span></button><button data-origin="1"><kbd>P</kbd><span><strong>Agropecuária</strong><small>Produtos animais</small></span><span class="category-icon">🥚</span></button><button data-origin="2"><kbd>I</kbd><span><strong>Agroindústria</strong><small>Produtos transformados</small></span><span class="category-icon">🧀</span></button></div>
+  </section>
+  <footer><span>APRENDA BRINCANDO. CRESÇA A CADA ACERTO.</span><span>Feito para mentes curiosas ✦</span></footer>
+</main>
+<dialog id="help"><h2>Da terra à origem</h2><p>Aperte a tecla ou toque no botão correspondente ao produto que está caindo.</p><p><b>A — Agricultura:</b> vegetais, frutas e grãos.<br><b>P — Agropecuária:</b> produtos de origem animal.<br><b>I — Agroindústria:</b> produtos transformados, como pão e queijo.</p><p>Neste jogo, “agropecuária” identifica a produção animal, embora o termo também englobe a agricultura. Uma resposta errada ou um produto no solo custa uma vida. Cada acerto vale 10 pontos; a cada 5 acertos, a queda acelera.</p><p>Espaço pausa ou continua. Ao trocar de aba, o jogo pausa automaticamente.</p><form method="dialog"><button class="primary">Entendi!</button></form></dialog>
+<script type="module" src="/game.js"></script>
+</body></html>
